@@ -7,5 +7,8 @@
 ///     #stringify(x + y)
 ///
 /// produces a tuple `(x + y, "x + y")`.
-@freestanding(expression)
-public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "SampleMacroMacros", type: "StringifyMacro")
+//@freestanding(expression)
+//public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "SampleMacroMacros", type: "StringifyMacro")
+
+@attached(member, names: named(init))
+public macro EnumSubset<Superset>() = #externalMacro(module: "SampleMacroMacros", type: "SlopeSubsetMacro")

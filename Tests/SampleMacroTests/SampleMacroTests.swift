@@ -7,40 +7,57 @@ import XCTest
 import SampleMacroMacros
 
 let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+    "EnumSubset": SlopeSubsetMacro.self
 ]
 #endif
 
 final class SampleMacroTests: XCTestCase {
-    func testMacro() throws {
-        #if canImport(SampleMacroMacros)
+    func testSlopeSubset() {
+        assertMacroExpansion(
+        """
+        @EnumSubset<Slope>
+        enum EasySlope {
+            case beginnersParadise
+            case practiceRun
+        }
+        """
+        , expandedSource:
+            """
+            enum EasySlope {
+                case beginnersParadise
+                case practiceRun
+            
+                init?(_ slope: Slope) {
+                    switch slope {
+                    case .beginnersParadise:
+                        self = .beginnersParadise
+                    case .practiceRun:
+                        self = .practiceRun
+                    default:
+                        return nil
+                    }
+                }
+            }
+            """, macros: testMacros)
+    }
+    
+    func testSlopeSubsetOnStruct() throws {
         assertMacroExpansion(
             """
-            #stringify(a + b)
+            @EnumSubset
+            struct Skier {
+            }
+            """
+            , expandedSource:
+            """
+            struct Skier {
+            }
             """,
-            expandedSource: """
-            (a + b, "a + b")
-            """,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
-
-    func testMacroWithStringLiteral() throws {
-        #if canImport(SampleMacroMacros)
-        assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+            diagnostics: [
+                DiagnosticSpec(message: "@EnumSubsetはenumにだけ使えます", line: 1, column: 1)
+            ],
+            macros: testMacros)
     }
 }
+
+
